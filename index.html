@@ -3,180 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thailand Electricity Dashboard 2026</title>
+    <title>Electricity Usage Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Prompt', sans-serif; }</style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-slate-50">
 
-    <header class="bg-slate-900 text-white py-6 px-4 mb-8 shadow-xl">
-        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-bold text-blue-400">Energy Insights <span class="text-white">Thailand</span></h1>
-                <p class="text-slate-400 text-sm">ข้อมูลสรุปการใช้ไฟฟ้าภาคครัวเรือนรายจังหวัด</p>
-            </div>
-            <div class="mt-4 md:mt-0 text-right">
-                <span class="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-xs font-semibold border border-blue-500/30">Data Source: PEA/MEA 2026</span>
-            </div>
+    <header class="bg-indigo-900 text-white p-6 shadow-xl mb-8">
+        <div class="container mx-auto">
+            <h1 class="text-3xl font-bold uppercase tracking-wide">Electricity Usage Dashboard</h1>
+            <p class="text-indigo-300">รายงานสรุปข้อมูลการใช้ไฟฟ้าปี 2566</p>
         </div>
     </header>
 
     <main class="container mx-auto px-4 pb-12">
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Total Provinces</p>
-                <h2 id="stat-provinces" class="text-3xl font-bold text-gray-800">-</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-blue-500">
+                <p class="text-gray-500 text-xs font-bold uppercase">Total Consumption</p>
+                <h2 id="total-kwh" class="text-2xl font-bold text-gray-800">-</h2>
+                <span class="text-xs text-gray-400">kWh</span>
             </div>
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Total Users (Households)</p>
-                <h2 id="stat-users" class="text-3xl font-bold text-blue-600">-</h2>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-emerald-500">
+                <p class="text-gray-500 text-xs font-bold uppercase">Total Active Users</p>
+                <h2 id="total-users" class="text-2xl font-bold text-gray-800">-</h2>
+                <span class="text-xs text-gray-400">Households</span>
             </div>
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Total Consumption (kWh)</p>
-                <h2 id="stat-kwh" class="text-3xl font-bold text-emerald-600">-</h2>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-orange-500">
+                <p class="text-gray-500 text-xs font-bold uppercase">AVG Usage / Province</p>
+                <h2 id="avg-usage" class="text-2xl font-bold text-gray-800">-</h2>
+                <span class="text-xs text-gray-400">kWh</span>
             </div>
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Avg. kWh per House</p>
-                <h2 id="stat-avg" class="text-3xl font-bold text-orange-500">-</h2>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-red-500">
+                <p class="text-gray-500 text-xs font-bold uppercase">Top Province</p>
+                <h2 id="top-province-name" class="text-2xl font-bold text-red-600">-</h2>
+                <span id="top-province-val" class="text-xs text-gray-400"></span>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="p-6 border-b border-gray-50 flex justify-between items-center">
-                    <h3 class="font-bold text-gray-800">รายละเอียดแยกตามจังหวัด</h3>
-                    <input type="text" id="search" placeholder="ค้นหาจังหวัด..." class="text-sm border rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div class="overflow-x-auto overflow-y-auto max-h-[600px]">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-50 text-gray-400 text-[10px] uppercase font-bold">
-                                <th class="px-6 py-4">จังหวัด</th>
-                                <th class="px-6 py-4 text-right">จำนวนผู้ใช้ (ราย)</th>
-                                <th class="px-6 py-4 text-right">การใช้ไฟ (kWh)</th>
-                                <th class="px-6 py-4 text-right">เฉลี่ยต่อหลัง</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-body" class="text-sm text-gray-600 divide-y divide-gray-100">
-                            </tbody>
-                    </table>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm">
+                <h3 class="font-bold text-gray-700 mb-6">Electricity Usage by Province (Top 15)</h3>
+                <div class="h-[500px]">
+                    <canvas id="barChart"></canvas>
                 </div>
             </div>
-
-            <div class="space-y-8">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <h3 class="font-bold text-gray-800 mb-6">Top 5 จังหวัดที่ใช้ไฟสูงสุด</h3>
-                    <div class="relative h-[300px]">
-                        <canvas id="topChart"></canvas>
-                    </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm">
+                <h3 class="font-bold text-gray-700 mb-6 text-center">Usage Sector Breakdown</h3>
+                <div class="h-[400px] flex items-center justify-center">
+                    <canvas id="pieChart"></canvas>
                 </div>
+            </div>
+        </div>
 
-                <div class="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 rounded-2xl text-white shadow-lg">
-                    <h4 class="font-bold mb-2">💡 ข้อแนะนำ</h4>
-                    <p class="text-blue-100 text-sm leading-relaxed">ข้อมูลนี้เป็นการเปรียบเทียบระหว่างจำนวนผู้ใช้งาน (Users) และปริมาณการใช้ไฟฟ้าจริง (kWh) เพื่อดูประสิทธิภาพการใช้พลังงานในแต่ละพื้นที่</p>
-                </div>
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+            <div class="p-6 border-b bg-gray-50 flex justify-between items-center">
+                <h3 class="font-bold text-gray-700 uppercase tracking-wider">Provincial Data Breakdown</h3>
+                <span class="bg-indigo-100 text-indigo-700 text-xs px-3 py-1 rounded-full font-bold">Year 2566</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 text-gray-400 text-[10px] uppercase font-bold">
+                        <tr>
+                            <th class="px-6 py-4">Province Name</th>
+                            <th class="px-6 py-4 text-right">Users (Households)</th>
+                            <th class="px-6 py-4 text-right">Consumption (kWh)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="divide-y divide-gray-100 text-sm"></tbody>
+                </table>
             </div>
         </div>
     </main>
 
     <script>
-        let globalData = [];
-
-        async function init() {
+        async function runDashboard() {
             try {
-                // 1. โหลดข้อมูล
-                const [resUsers, resUsages] = await Promise.all([
+                const [uRes, sRes] = await Promise.all([
                     fetch('electricity_users_en.json'),
                     fetch('electricity_usages_en.json')
                 ]);
 
-                const users = await resUsers.json();
-                const usagesRaw = await resUsages.json();
-                const usages = usagesRaw.Sheet1; // เข้าถึงผ่าน Sheet1
+                const usersData = (await uRes.json()).filter(i => i.year === 2566);
+                const usagesData = (await sRes.json()).Sheet1.filter(i => i.year === 2566);
 
-                // 2. รวมข้อมูล (Join) โดยใช้ province_code
-                globalData = users.map(user => {
-                    const usage = usages.find(u => u.province_code === user.province_code) || {};
+                // รวมข้อมูล
+                const merged = usersData.map(u => {
+                    const s = usagesData.find(x => x.province_code === u.province_code) || {};
                     return {
-                        name: user.province_name,
-                        count: user.residential_count || 0,
-                        kwh: usage.residential_kwh || 0,
-                        avg: (usage.residential_kwh / user.residential_count) || 0
-                    };
+                        name: u.province_name,
+                        count: u.residential_count || 0,
+                        kwh: s.residential_kwh || 0,
+                        // สำหรับ Pie Chart (รวมทุก sector ทั่วประเทศ)
+                        sectors: s
+                    }
+                }).sort((a, b) => b.kwh - a.kwh);
+
+                // --- 1. Update Cards ---
+                const totalKwh = merged.reduce((a, b) => a + b.kwh, 0);
+                const totalUsers = merged.reduce((a, b) => a + b.count, 0);
+                document.getElementById('total-kwh').innerText = totalKwh.toLocaleString();
+                document.getElementById('total-users').innerText = totalUsers.toLocaleString();
+                document.getElementById('avg-usage').innerText = (totalKwh / merged.length).toLocaleString(undefined, {maximumFractionDigits:0});
+                document.getElementById('top-province-name').innerText = merged[0].name;
+                document.getElementById('top-province-val').innerText = merged[0].kwh.toLocaleString() + " kWh";
+
+                // --- 2. Top 15 Bar Chart ---
+                const top15 = merged.slice(0, 15);
+                new Chart(document.getElementById('barChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: top15.map(d => d.name),
+                        datasets: [{
+                            label: 'Consumption (kWh)',
+                            data: top15.map(d => d.kwh),
+                            backgroundColor: '#3b82f6',
+                            borderRadius: 5
+                        }]
+                    },
+                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
                 });
 
-                updateStats();
-                renderTable(globalData);
-                renderChart(globalData);
+                // --- 3. Usage Sector Breakdown (Pie) ---
+                // รวมค่าทุก Sector จากทุกจังหวัด
+                const sectors = {
+                    'Residential': usagesData.reduce((a, b) => a + (b.residential_kwh || 0), 0),
+                    'Small Biz': usagesData.reduce((a, b) => a + (b.small_business_kwh || 0), 0),
+                    'Large Biz': usagesData.reduce((a, b) => a + (b.large_business_kwh || 0), 0),
+                    'Public/Gov': usagesData.reduce((a, b) => a + (b.public_electricity_kwh || 0), 0)
+                };
 
-            } catch (err) {
-                console.error("Fetch Error:", err);
-                alert("เกิดข้อผิดพลาด: โปรดตรวจสอบว่ารันผ่าน Local Server (http://...)");
-            }
+                new Chart(document.getElementById('pieChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(sectors),
+                        datasets: [{
+                            data: Object.values(sectors),
+                            backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#6366f1']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+                });
+
+                // --- 4. Table ---
+                document.getElementById('table-body').innerHTML = merged.map(d => `
+                    <tr class="hover:bg-indigo-50/50">
+                        <td class="px-6 py-4 font-semibold text-slate-700">${d.name}</td>
+                        <td class="px-6 py-4 text-right font-mono">${d.count.toLocaleString()}</td>
+                        <td class="px-6 py-4 text-right font-mono font-bold text-blue-600">${d.kwh.toLocaleString()}</td>
+                    </tr>
+                `).join('');
+
+            } catch (e) { console.error(e); }
         }
-
-        function updateStats() {
-            const totalKwh = globalData.reduce((s, c) => s + c.kwh, 0);
-            const totalUsers = globalData.reduce((s, c) => s + c.count, 0);
-
-            document.getElementById('stat-provinces').innerText = globalData.length;
-            document.getElementById('stat-users').innerText = totalUsers.toLocaleString();
-            document.getElementById('stat-kwh').innerText = totalKwh.toLocaleString();
-            document.getElementById('stat-avg').innerText = (totalKwh / totalUsers).toFixed(1);
-        }
-
-        function renderTable(data) {
-            const tbody = document.getElementById('table-body');
-            tbody.innerHTML = data.map(d => `
-                <tr class="hover:bg-blue-50/50 transition-colors">
-                    <td class="px-6 py-4 font-semibold text-gray-800">${d.name}</td>
-                    <td class="px-6 py-4 text-right font-mono">${d.count.toLocaleString()}</td>
-                    <td class="px-6 py-4 text-right font-mono">${d.kwh.toLocaleString()}</td>
-                    <td class="px-6 py-4 text-right">
-                        <span class="bg-gray-100 px-2 py-1 rounded text-xs font-bold text-gray-500">${d.avg.toFixed(1)}</span>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function renderChart(data) {
-            const top5 = [...data].sort((a, b) => b.kwh - a.kwh).slice(0, 5);
-            const ctx = document.getElementById('topChart').getContext('2d');
-            
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: top5.map(d => d.name),
-                    datasets: [{
-                        data: top5.map(d => d.kwh),
-                        backgroundColor: ['#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef'],
-                        borderWidth: 0,
-                        hoverOffset: 15
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
-                    }
-                }
-            });
-        }
-
-        // ระบบค้นหา
-        document.getElementById('search').addEventListener('input', (e) => {
-            const val = e.target.value.toLowerCase();
-            const filtered = globalData.filter(d => d.name.toLowerCase().includes(val));
-            renderTable(filtered);
-        });
-
-        init();
+        runDashboard();
     </script>
 </body>
 </html>

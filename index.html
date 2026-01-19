@@ -3,126 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Electricity Usage Dashboard</title>
+    <title>Thailand Electricity Dashboard 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
 </head>
-<body class="bg-slate-50 font-sans">
+<body class="bg-gray-50">
 
-    <nav class="bg-indigo-700 p-4 text-white shadow-md">
-        <div class="container mx-auto">
-            <h1 class="text-xl font-bold">ระบบรายงานข้อมูลการใช้ไฟฟ้ารายจังหวัด (2566)</h1>
-        </div>
-    </nav>
-
-    <main class="container mx-auto py-6 px-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h3 class="text-slate-500 text-sm font-medium uppercase">จำนวนจังหวัดทั้งหมด</h3>
-                <p id="total-provinces" class="text-3xl font-bold text-slate-800">-</p>
+    <header class="bg-slate-900 text-white py-6 px-4 mb-8 shadow-xl">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-blue-400">Energy Insights <span class="text-white">Thailand</span></h1>
+                <p class="text-slate-400 text-sm">ข้อมูลสรุปการใช้ไฟฟ้าภาคครัวเรือนรายจังหวัด</p>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h3 class="text-slate-500 text-sm font-medium uppercase">การใช้ไฟฟ้าภาคที่อยู่อาศัยรวม (kWh)</h3>
-                <p id="total-residential-kwh" class="text-3xl font-bold text-indigo-600">-</p>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h3 class="text-slate-500 text-sm font-medium uppercase">จำนวนผู้ใช้ไฟฟ้าทั้งหมด</h3>
-                <p id="total-users-count" class="text-3xl font-bold text-emerald-600">-</p>
+            <div class="mt-4 md:mt-0 text-right">
+                <span class="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full text-xs font-semibold border border-blue-500/30">Data Source: PEA/MEA 2026</span>
             </div>
         </div>
+    </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h3 class="text-lg font-bold mb-4">5 อันดับจังหวัดที่ใช้ไฟสูงสุด (Residential)</h3>
-                <canvas id="usageChart"></canvas>
+    <main class="container mx-auto px-4 pb-12">
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Total Provinces</p>
+                <h2 id="stat-provinces" class="text-3xl font-bold text-gray-800">-</h2>
             </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Total Users (Households)</p>
+                <h2 id="stat-users" class="text-3xl font-bold text-blue-600">-</h2>
+            </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Total Consumption (kWh)</p>
+                <h2 id="stat-kwh" class="text-3xl font-bold text-emerald-600">-</h2>
+            </div>
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Avg. kWh per House</p>
+                <h2 id="stat-avg" class="text-3xl font-bold text-orange-500">-</h2>
+            </div>
+        </div>
 
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h3 class="text-lg font-bold mb-4">ข้อมูลรายจังหวัด</h3>
-                <div class="overflow-y-auto max-h-[400px]">
-                    <table class="min-w-full text-sm text-left text-slate-600">
-                        <thead class="sticky top-0 bg-white border-b">
-                            <tr>
-                                <th class="py-3 px-2">จังหวัด</th>
-                                <th class="py-3 px-2 text-right">จำนวนผู้ใช้ (ราย)</th>
-                                <th class="py-3 px-2 text-right">การใช้ไฟ (kWh)</th>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-50 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-800">รายละเอียดแยกตามจังหวัด</h3>
+                    <input type="text" id="search" placeholder="ค้นหาจังหวัด..." class="text-sm border rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="overflow-x-auto overflow-y-auto max-h-[600px]">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 text-gray-400 text-[10px] uppercase font-bold">
+                                <th class="px-6 py-4">จังหวัด</th>
+                                <th class="px-6 py-4 text-right">จำนวนผู้ใช้ (ราย)</th>
+                                <th class="px-6 py-4 text-right">การใช้ไฟ (kWh)</th>
+                                <th class="px-6 py-4 text-right">เฉลี่ยต่อหลัง</th>
                             </tr>
                         </thead>
-                        <tbody id="data-table-body"></tbody>
+                        <tbody id="table-body" class="text-sm text-gray-600 divide-y divide-gray-100">
+                            </tbody>
                     </table>
+                </div>
+            </div>
+
+            <div class="space-y-8">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-gray-800 mb-6">Top 5 จังหวัดที่ใช้ไฟสูงสุด</h3>
+                    <div class="relative h-[300px]">
+                        <canvas id="topChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 rounded-2xl text-white shadow-lg">
+                    <h4 class="font-bold mb-2">💡 ข้อแนะนำ</h4>
+                    <p class="text-blue-100 text-sm leading-relaxed">ข้อมูลนี้เป็นการเปรียบเทียบระหว่างจำนวนผู้ใช้งาน (Users) และปริมาณการใช้ไฟฟ้าจริง (kWh) เพื่อดูประสิทธิภาพการใช้พลังงานในแต่ละพื้นที่</p>
                 </div>
             </div>
         </div>
     </main>
 
     <script>
-        async function loadDashboard() {
+        let globalData = [];
+
+        async function init() {
             try {
-                const [usersRes, usageRes] = await Promise.all([
+                // 1. โหลดข้อมูล
+                const [resUsers, resUsages] = await Promise.all([
                     fetch('electricity_users_en.json'),
                     fetch('electricity_usages_en.json')
                 ]);
 
-                const usersData = await usersRes.json();
-                const usageDataRaw = await usageRes.json();
-                
-                // เข้าถึง Array ผ่านคีย์ "Sheet1" ตามโครงสร้างไฟล์จริง
-                const usages = usageDataRaw.Sheet1 || [];
-                const users = usersData || [];
+                const users = await resUsers.json();
+                const usagesRaw = await resUsages.json();
+                const usages = usagesRaw.Sheet1; // เข้าถึงผ่าน Sheet1
 
-                renderStats(users, usages);
-                renderChart(usages);
-                renderTable(users, usages);
+                // 2. รวมข้อมูล (Join) โดยใช้ province_code
+                globalData = users.map(user => {
+                    const usage = usages.find(u => u.province_code === user.province_code) || {};
+                    return {
+                        name: user.province_name,
+                        count: user.residential_count || 0,
+                        kwh: usage.residential_kwh || 0,
+                        avg: (usage.residential_kwh / user.residential_count) || 0
+                    };
+                });
 
-            } catch (error) {
-                console.error("Error:", error);
-                alert("ไม่สามารถโหลดข้อมูลได้ โปรดรันผ่าน Local Server");
+                updateStats();
+                renderTable(globalData);
+                renderChart(globalData);
+
+            } catch (err) {
+                console.error("Fetch Error:", err);
+                alert("เกิดข้อผิดพลาด: โปรดตรวจสอบว่ารันผ่าน Local Server (http://...)");
             }
         }
 
-        function renderStats(users, usages) {
-            const totalResKwh = usages.reduce((sum, item) => sum + (item.residential_kwh || 0), 0);
-            const totalUsers = users.reduce((sum, item) => sum + (item.residential_count || 0), 0);
-            
-            document.getElementById('total-provinces').innerText = usages.length;
-            document.getElementById('total-residential-kwh').innerText = totalResKwh.toLocaleString();
-            document.getElementById('total-users-count').innerText = totalUsers.toLocaleString();
+        function updateStats() {
+            const totalKwh = globalData.reduce((s, c) => s + c.kwh, 0);
+            const totalUsers = globalData.reduce((s, c) => s + c.count, 0);
+
+            document.getElementById('stat-provinces').innerText = globalData.length;
+            document.getElementById('stat-users').innerText = totalUsers.toLocaleString();
+            document.getElementById('stat-kwh').innerText = totalKwh.toLocaleString();
+            document.getElementById('stat-avg').innerText = (totalKwh / totalUsers).toFixed(1);
         }
 
-        function renderChart(usages) {
-            // ดึง 5 อันดับแรกมาแสดงในกราฟ
-            const top5 = [...usages].sort((a, b) => b.residential_kwh - a.residential_kwh).slice(0, 5);
+        function renderTable(data) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = data.map(d => `
+                <tr class="hover:bg-blue-50/50 transition-colors">
+                    <td class="px-6 py-4 font-semibold text-gray-800">${d.name}</td>
+                    <td class="px-6 py-4 text-right font-mono">${d.count.toLocaleString()}</td>
+                    <td class="px-6 py-4 text-right font-mono">${d.kwh.toLocaleString()}</td>
+                    <td class="px-6 py-4 text-right">
+                        <span class="bg-gray-100 px-2 py-1 rounded text-xs font-bold text-gray-500">${d.avg.toFixed(1)}</span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderChart(data) {
+            const top5 = [...data].sort((a, b) => b.kwh - a.kwh).slice(0, 5);
+            const ctx = document.getElementById('topChart').getContext('2d');
             
-            const ctx = document.getElementById('usageChart').getContext('2d');
             new Chart(ctx, {
-                type: 'bar',
+                type: 'doughnut',
                 data: {
-                    labels: top5.map(d => d.province_name),
+                    labels: top5.map(d => d.name),
                     datasets: [{
-                        label: 'Residential kWh',
-                        data: top5.map(d => d.residential_kwh),
-                        backgroundColor: '#4f46e5'
+                        data: top5.map(d => d.kwh),
+                        backgroundColor: ['#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef'],
+                        borderWidth: 0,
+                        hoverOffset: 15
                     }]
                 },
-                options: { responsive: true, indexAxis: 'y' }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
+                    }
+                }
             });
         }
 
-        function renderTable(users, usages) {
-            const tbody = document.getElementById('data-table-body');
-            users.forEach(user => {
-                const usage = usages.find(u => u.province_code === user.province_code) || {};
-                const row = `
-                    <tr class="border-b hover:bg-slate-50">
-                        <td class="py-3 px-2 font-medium">${user.province_name}</td>
-                        <td class="py-3 px-2 text-right">${(user.residential_count || 0).toLocaleString()}</td>
-                        <td class="py-3 px-2 text-right">${(usage.residential_kwh || 0).toLocaleString()}</td>
-                    </tr>`;
-                tbody.innerHTML += row;
-            });
-        }
+        // ระบบค้นหา
+        document.getElementById('search').addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase();
+            const filtered = globalData.filter(d => d.name.toLowerCase().includes(val));
+            renderTable(filtered);
+        });
 
-        loadDashboard();
+        init();
     </script>
 </body>
 </html>
